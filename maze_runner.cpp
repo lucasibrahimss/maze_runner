@@ -1,5 +1,10 @@
 #include <stdio.h>
 #include <stack>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
 
 // Matriz de char representnado o labirinto
 char** maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
@@ -39,9 +44,25 @@ std::stack<pos_t> valid_positions;
 pos_t load_maze(const char* file_name) {
 	pos_t initial_pos;
 	// Abre o arquivo para leitura (fopen)
+	std::ifstream arquivo(file_name);
+	num_rows=0;
+	num_cols=0;
 
-	// Le o numero de linhas e colunas (fscanf) 
-	// e salva em num_rows e num_cols
+	if(arquivo.is_open())
+	{
+		std::string primeiraLinha;
+		if(std::getline(arquivo, primeiraLinha))
+		{
+			std::istringstream iss(primeiraLinha);
+			if(iss >> num_rows >> num_cols)
+			{
+				std::cout << num_rows << " " << num_cols << std::endl;
+			}
+		}
+		arquivo.close();
+	} else{
+		std::cerr << "Nao foi possivel abrir o arquivo." << std::endl;
+	}
 
 	// Aloca a matriz maze (malloc)
 	for (int i = 0; i < num_rows; ++i)
