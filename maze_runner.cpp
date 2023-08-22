@@ -47,6 +47,7 @@ pos_t load_maze(const char* file_name) {
 	std::ifstream arquivo(file_name);
 	num_rows=0;
 	num_cols=0;
+	std::vector<std::vector<char>> labirinto;
 
 	if(arquivo.is_open())
 	{
@@ -58,6 +59,20 @@ pos_t load_maze(const char* file_name) {
 			{
 				std::cout << num_rows << " " << num_cols << std::endl;
 			}
+		}
+		std::string linha;
+		while (std::getline(arquivo, linha))
+		{
+
+			std::vector<char> linhaLabirinto;
+			for(char c : linha) {
+				linhaLabirinto.push_back(c);
+			}
+			labirinto.push_back(linhaLabirinto);
+		}
+		for (int i=0; i<num_rows; i++)
+		{
+			std::cout << labirinto[i][0];
 		}
 		arquivo.close();
 	} else{
