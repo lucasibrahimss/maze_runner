@@ -57,7 +57,7 @@ pos_t load_maze(const char* file_name) {
 			std::istringstream iss(primeiraLinha);
 			if(iss >> num_rows >> num_cols)
 			{
-				std::cout << num_rows << " " << num_cols << std::endl;
+				//std::cout << num_rows << " " << num_cols << std::endl;
 			}
 		}
 		std::string linha;
@@ -70,17 +70,24 @@ pos_t load_maze(const char* file_name) {
 			}
 			labirinto.push_back(linhaLabirinto);
 		}
-		for (int i=0; i<num_rows; i++)
-		{
-			std::cout << labirinto[i][0];
-		}
 		arquivo.close();
-	} else{
-		std::cerr << "Nao foi possivel abrir o arquivo." << std::endl;
-	}
+		for( int i=0; i<num_rows;i++){
+			for(int j; j<num_cols; i++){
+				if (labirinto[i][j] == 'e')
+				{
+					initial_pos.i=i;
+					initial_pos.j=j;
+					std::cout<<initial_pos.i<< "  " << initial_pos.j<<std::endl;
+				}
+			}
+		}
 
+
+	} else{
+		//std::cerr << "Nao foi possivel abrir o arquivo." << std::endl;
+	}
 	// Aloca a matriz maze (malloc)
-	for (int i = 0; i < num_rows; ++i)
+	/*for (int i = 0; i < num_rows; ++i)
 		// Aloca cada linha da matriz
 	
 	for (int i = 0; i < num_rows; ++i) {
@@ -88,19 +95,19 @@ pos_t load_maze(const char* file_name) {
 			// Le o valor da linha i+1,j do arquivo e salva na posição maze[i][j]
 			// Se o valor for 'e' salvar o valor em initial_pos
 		}
-	}
+	}*/
 	return initial_pos;
 }
 
 // Função que imprime o labirinto
-void print_maze() {
+/*void print_maze() {
 	for (int i = 0; i < num_rows; ++i) {
 		for (int j = 0; j < num_cols; ++j) {
-			printf("%c", maze[i][j]);
+			//printf("%c", maze[i][j]);
 		}
-		printf("\n");
+		//printf("\n");
 	}
-}
+}*/
 
 
 // Função responsável pela navegação.
