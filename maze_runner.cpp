@@ -1,154 +1,138 @@
 #include <stdio.h>
 #include <stack>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include <queue>
-#include <utility>
+#include <cstdlib>
 
-// Matriz de char representnado o labirinto
-char** maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
-
+// Matriz representnado o labirinto
+char **maze;
 // Numero de linhas e colunas do labirinto
 int num_rows;
 int num_cols;
 
-// Representação de uma posição
-struct pos_t {
+// Posição a ser explorada
+struct pos_t
+{
 	int i;
 	int j;
-	std::vector<std::vector<char>> labirinto;
 };
 
-
-
-// Função que le o labirinto de um arquivo texto, carrega em 
-// memória e retorna a posição inicial
-pos_t load_maze(const char* file_name) {
+struct maze_infos{
 	pos_t initial_pos;
+	int rows;
+	int cols;
+};
+
+// Estrutura de dados contendo as próximas
+// posicões a serem exploradas no labirinto
+std::stack<pos_t> valid_positions;
+
+/* Inserir elemento:
+
+	 pos_t pos;
+	 pos.i = 1;
+	 pos.j = 3;
+	 valid_positions.push(pos)
+ */
+// Retornar o numero de elementos: valid_positions.size();
+// Retornar o primeiro elemento fo vetor: valid_positions.pop();
+// Remover o elemento no topo: valid_positions.front();
+
+
+maze_infos load_maze(const char* file_name)
+{
 	// Abre o arquivo para leitura (fopen)
-
-	// Le o numero de linhas e colunas (fscanf) 
+	// Le o numero de linhas e colunas (fscanf)
 	// e salva em num_rows e num_cols
-	std::ifstream arquivo(file_name);
-	num_rows=0;
-	num_cols=0;
 
-	if(arquivo.is_open())
-	{
-		std::string primeiraLinha;
-		if(std::getline(arquivo, primeiraLinha))
-		{
-			std::istringstream iss(primeiraLinha);
-			if(iss >> num_rows >> num_cols)
-			{
-				//std::cout << num_rows << " " << num_cols << std::endl;
-			}
-		}
+	pos_t initial_pos;
+	FILE *file_maze;
+	file_maze = fopen(file_name, "r");
+	fscanf(file_maze, "%d %d\n", &num_rows, &num_cols);
+	char c;
 
-			std::string linha;
-		while (std::getline(arquivo, linha))
-		{
+	maze = (char **)malloc(num_rows * sizeof(char*));
 
-			std::vector<char> linhaLabirinto;
-			for(char c : linha) {
-				linhaLabirinto.push_back(c);
-			}
-			initial_pos.labirinto.push_back(linhaLabirinto);
-		}
-	}
-
-	for( int i=0; i<num_rows; i++){
-			for(int j=0; j<num_cols; j++){
-				if (initial_pos.labirinto[i][j] == 'e')
-				{
-					initial_pos.i=i;
-					initial_pos.j=j;
-				}
-			}
-	}
 	// Aloca a matriz maze (malloc)
-	for (int i = 0; i < num_rows; ++i)
+	for (int i = 0; i < num_rows; i++)
+	{
 		// Aloca cada linha da matriz
-	
-	for (int i = 0; i < num_rows; ++i) {
-		for (int j = 0; j < num_cols; ++j) {
+		maze[i] = (char *)malloc(num_cols * sizeof(char*));
+	}
+  
+	for (int i = 0; i < num_rows; i++)
+	{
+		for (int j = 0; j < num_cols; j++)
+		{
 			// Le o valor da linha i+1,j do arquivo e salva na posição maze[i][j]
 			// Se o valor for 'e' salvar o valor em initial_pos
+
+			fscanf(file_maze, "%c", &maze[i][j]);
+			if(maze[i][j] == 'e')
+			{
+				initial_pos.i = i;
+				initial_pos.j = j;
+			}
 		}
+		fscanf(file_maze, "%c", &c);
 	}
-	return initial_pos;
+
+	maze_infos infos;
+	infos.initial_pos = initial_pos;
+	infos.cols = num_cols;
+	infos.rows = num_rows;
+	return infos;
 }
 
-// Função que imprime o labirinto
-void print_maze() {
-	for (int i = 0; i < num_rows; ++i) {
-		for (int j = 0; j < num_cols; ++j) {
+void print_maze()
+{
+	for (int i = 0; i < num_rows; i++)
+	{
+		for (int j = 0; j < num_cols; j++)
+		{
 			printf("%c", maze[i][j]);
 		}
 		printf("\n");
 	}
-};
+}
 
-std::vector<std::pair<int, int>> encontrarSaidaLabirinto(std::vector<std::vector<char>>& labirinto, int linhaInicial, int colunaInicial) {
-    int linhas = labirinto.size();
-    int colunas = labirinto[0].size();
-	std::vector<std::pair<int, int>> valid_pos;
+void walk(pos_t start, int rows, int cols) {
+    valid_positions.push(start);
 
-    // Criar uma fila para BFS
-    std::queue<std::pair<int, int>> fila;
-    fila.push(std::pair<int, int>(linhaInicial, colunaInicial));
+    while (!valid_positions.empty()) {
+        pos_t current = valid_positions.top();
+        valid_positions.pop();
 
-    // Movimentos possíveis: cima, baixo, esquerda, direita
-    int movimentosLin[] = {-1, 1, 0, 0};
-    int movimentosCol[] = {0, 0, -1, 1};
-
-    while (!fila.empty()) {
-        int linha = fila.front().first;
-        int coluna = fila.front().second;
-        fila.pop();
-
-        // Checar se a posição atual é a saída
-        if (labirinto[linha][coluna] == 's') {
-        	return valid_pos;
+        if (maze[current.i][current.j] == 's') {
+            maze[current.i][current.j] = '.';
+            print_maze();
+            return;
         }
 
-        // Marcar a posição como visitada
-        labirinto[linha][coluna] = '#';
+        maze[current.i][current.j] = '.';
 
-        // Tentar mover para todas as direções possíveis
-        for (int i = 0; i < 4; ++i) {
-            int novaLinha = linha + movimentosLin[i];
-            int novaColuna = coluna + movimentosCol[i];
+        print_maze();
+		printf("\n");
 
-            // Checar se a nova posição está dentro do labirinto e não é um obstáculo
-            if (novaLinha >= 0 && novaLinha < linhas && novaColuna >= 0 && novaColuna < colunas && labirinto[novaLinha][novaColuna] != '#') {
-                fila.push(std::pair<int, int>(novaLinha, novaColuna));
-				valid_pos.push_back(std::pair<int, int>(novaLinha, novaColuna));
-				
-            }
+
+        if (current.i > 0 && maze[current.i-1][current.j] == 'x') {
+            valid_positions.push({current.i-1, current.j});
+        }
+        if (current.i < rows-1 && maze[current.i+1][current.j] == 'x') {
+            valid_positions.push({current.i+1, current.j});
+        }
+        if (current.j > 0 && maze[current.i][current.j-1] == 'x') {
+            valid_positions.push({current.i, current.j-1});
+        }
+        if (current.j < cols-1 && maze[current.i][current.j+1] == 'x') {
+            valid_positions.push({current.i, current.j+1});
         }
     }
-
-
-
 }
 
 
-
-int main(int argc, char* argv[]) {
-	// carregar o labirinto com o nome do arquivo recebido como argumento
-	pos_t initial_pos = load_maze(argv[1]);
-	// chamar a função de navegação
-	std::vector<std::pair<int, int>> exit_found = encontrarSaidaLabirinto(initial_pos.labirinto, initial_pos.i, initial_pos.j);
-	for(int i=0; i<exit_found.size(); i++)
-	{
-		std::cout << exit_found[i].first << "    -    " << exit_found[i].second << std::endl;
-	}
-	
-	// Tratar o retorno (imprimir mensagem)
-	
-	return 0;
-};
+int main(int argc, char* argv[])
+{
+	// carregar o labirinto com o nome do arquivo recebido como argumento (argv[])
+	maze_infos infos = load_maze(argv[1]);
+	print_maze();
+	walk(infos.initial_pos, infos.rows, infos.cols);
+}
