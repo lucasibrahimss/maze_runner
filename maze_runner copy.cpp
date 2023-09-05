@@ -90,7 +90,7 @@ bool findPath(vector<vector<char>>& maze, int row, int col) {
     int numCols = maze[0].size();
 
     // Verificar se estamos fora dos limites da matriz.
-    if (row < 0 || row >= numRows || col < 0 || col >= numCols) {
+    if (row < 0 || row >= numRows || col < 0 || col >= numCols){
         return false;
     }
     // Verificar se atingimos o ponto de chegada.
@@ -99,42 +99,28 @@ bool findPath(vector<vector<char>>& maze, int row, int col) {
     }
 
     // Verificar se a célula atual é uma parede, já foi visitada ou não faz parte do caminho correto.
-    if (maze[row][col] == '#' || maze[row][col] == '-' || maze[row][col] == ' ') {
+    if (maze[row][col] == '#' || maze[row][col] == '-' || maze[row][col] == ' ')
+    {
         return false;
     }
 
+    print(maze);
     // Marcar a célula como parte do caminho temporariamente.
     char originalCell = maze[row][col];
     maze[row][col] = '-';
-    print(maze);
 
-    // Vetor para armazenar as threads.
-    std::vector<std::thread> threads;
-
-    // Função anônima para explorar uma direção em uma nova thread.
-    auto exploreDirection = [&maze, row, col](int dr, int dc) {
-        if (findPath(maze, row + dr, col + dc)) {
-            return true;
-        }
-        return false;
-    };
-
-    // Criar threads para explorar as quatro direções possíveis.
-    threads.emplace_back(exploreDirection, 1, 0);
-    threads.emplace_back(exploreDirection, -1, 0);
-    threads.emplace_back(exploreDirection, 0, 1);
-    threads.emplace_back(exploreDirection, 0, -1);
-
-    // Aguardar que todas as threads terminem.
-    for (auto& thread : threads) {
-        thread.join();
+    // Tentar mover nas quatro direções possíveis.
+    if (findPath(maze, row + 1, col) ||
+        findPath(maze, row - 1, col) ||
+        findPath(maze, row, col + 1) ||
+        findPath(maze, row, col - 1)) {
+        return true;
     }
 
     // Restaurar a célula original, pois não faz parte do caminho correto.
     maze[row][col] = originalCell;
     return false;
 }
-
 
 
 int main(int argc, char* argv[]){
