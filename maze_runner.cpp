@@ -1,17 +1,15 @@
-#include <stdio.h>
-#include <stack>
+#include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <sstream>
-#include <queue>
-#include <utility>
 #include <thread>
 #include <chrono>
 #include <cstdlib>
+#include <mutex>  // Adicionado para usar mutex
 
 using namespace std;
+
 int num_rows;
 int num_cols;
 
@@ -26,64 +24,64 @@ void clearScreen() {
 }
 
 struct pos_t {
-	int i;
-	int j;
-	std::vector<std::vector<char>> labirinto;
+    int i;
+    int j;
+    std::vector<std::vector<char>> labirinto;
 };
 
 pos_t load_maze(const char* file_name) {
-	pos_t initial_pos;
-	std::ifstream arquivo(file_name);
-	num_rows=0;
-	num_cols=0;
+    pos_t initial_pos;
+    std::ifstream arquivo(file_name);
+    num_rows = 0;
+    num_cols = 0;
 
-	if(arquivo.is_open())
-	{
-		std::string primeiraLinha;
-		if(std::getline(arquivo, primeiraLinha))
-		{
-			std::istringstream iss(primeiraLinha);
-			if(iss >> num_rows >> num_cols)
-			{
-				//std::cout << num_rows << " " << num_cols << std::endl;
-			}
-		}
-
-			std::string linha;
-		while (std::getline(arquivo, linha))
-		{
-
-			std::vector<char> linhaLabirinto;
-			for(char c : linha) {
-				linhaLabirinto.push_back(c);
-			}
-			initial_pos.labirinto.push_back(linhaLabirinto);
-		}
-	}
-
-	for( int i=0; i<num_rows; i++){
-			for(int j=0; j<num_cols; j++){
-				if (initial_pos.labirinto[i][j] == 'e')
-				{
-					initial_pos.i=i;
-					initial_pos.j=j;
-				}
-			}
-	}
-
-	return initial_pos;
-}
-    void print(std::vector<std::vector<char>> maze)
-    {
-        clearScreen();
-        for (int i = 0; i < num_rows; ++i) {
-            for (int j = 0; j < num_cols; ++j) {
-                cout << maze[i][j];
+    if (arquivo.is_open()) {
+        std::string primeiraLinha;
+        if (std::getline(arquivo, primeiraLinha)) {
+            std::istringstream iss(primeiraLinha);
+            if (iss >> num_rows >> num_cols) {
+                //std::cout << num_rows << " " << num_cols << std::endl;
             }
-            cout << endl;
         }
-        this_thread::sleep_for(chrono::milliseconds(50));
+
+        std::string linha;
+        while (std::getline(arquivo, linha)) {
+
+            std::vector<char> linhaLabirinto;
+            for (char c : linha) {
+                linhaLabirinto.push_back(c);
+            }
+            initial_pos.labirinto.push_back(linhaLabirinto);
+        }
     }
+
+    for (int i = 0; i < num_rows; i++) {
+        for (int j = 0; j < num_cols; j++) {
+            if (initial_pos.labirinto[i][j] == 'e') {
+                initial_pos.i = i;
+                initial_pos.j = j;
+            }
+        }
+    }
+
+    return initial_pos;
+}
+
+// Mutex para controlar a impressão
+std::mutex printMutex;
+
+void print(std::vector<std::vector<char>> maze) {
+    printMutex.lock();  // Bloqueia o mutex antes de imprimir
+    clearScreen();
+    for (int i = 0; i < num_rows; ++i) {
+        for (int j = 0; j < num_cols; ++j) {
+            cout << maze[i][j];
+        }
+        cout << endl;
+    }
+    printMutex.unlock();  // Desbloqueia o mutex após a impressão
+    this_thread::sleep_for(chrono::milliseconds(50));
+}
 
 bool findPath(vector<vector<char>>& maze, int row, int col) {
     int numRows = maze.size();
@@ -135,17 +133,20 @@ bool findPath(vector<vector<char>>& maze, int row, int col) {
     return false;
 }
 
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        cout << "Uso: " << argv[0] << " <arquivo de labirinto>" << endl;
+        return 1;
+    }
 
-
-int main(int argc, char* argv[]){
     pos_t maze = load_maze(argv[1]);
     int startRow = maze.i;
     int startCol = maze.j;
-    cout<<startRow<<"  "<<startCol<<endl;
-    cout<<num_rows<<"  "<<num_cols<<endl;
+    cout << startRow << "  " << startCol << endl;
+    cout << num_rows << "  " << num_cols << endl;
 
     // Encontrar o caminho correto.
     findPath(maze.labirinto, startRow, startCol);
-      
+
     return 0;
 }
